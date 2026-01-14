@@ -1,17 +1,34 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    const { data: { user }, error } = await supabase.auth.getUser();
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json({ user: null }, { status: 200 });
+    }
+
+    // Get the session token from the request header
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "");
+
+    if (!token) {
+      return NextResponse.json({ user: null }, { status: 200 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+
+    const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
-      return NextResponse.json(
-        { user: null },
-        { status: 401 }
-      );
+      return NextResponse.json({ user: null }, { status: 200 });
     }
 
     return NextResponse.json({
@@ -24,9 +41,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Session error:", error);
-    return NextResponse.json(
-      { user: null },
-      { status: 500 }
-    );
+    return NextResponse.json({ user: null }, { status: 200 });
   }
 }

@@ -3,6 +3,9 @@ import { FileText, Zap, Folder, TrendingUp, ArrowUpRight, Sparkles, Clock } from
 import Link from "next/link";
 import { fetchDashboardStats } from "@/lib/api/client";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // Helper to format relative time
 function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);

@@ -1,27 +1,37 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json(
+        { error: "服务器配置错误" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
     const body = await request.json();
     const { email, password, name } = body;
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { error: "邮箱和密码不能为空" },
         { status: 400 }
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
+        { error: "密码至少需要6个字符" },
         { status: 400 }
       );
     }
 
-    // Try to sign up first
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -29,70 +39,41 @@ export async function POST(request: NextRequest) {
         data: {
           name: name || email.split("@")[0],
         },
-        emailRedirectTo: `${new URL(request.url).origin}/auth/callback`,
       },
     });
 
-    // If signup succeeded
-    if (!error) {
-      // Check if email confirmation is required
-      if (data.user && !data.session) {
-        return NextResponse.json({
-          success: true,
-          message: "Registration successful! Please check your email to confirm your account.",
-          requireConfirmation: true,
-        });
-      }
-
-      return NextResponse.json({
-        success: true,
-        user: {
-          id: data.user?.id,
-          email: data.user?.email,
-        },
-        session: data.session ? {
-          access_token: data.session.access_token,
-          expires_at: data.session.expires_at,
-        } : null,
-      });
-    }
-
-    // If user already exists, try to sign in
-    if (error.message.includes("already") || error.message.includes("registered")) {
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (!signInError && signInData.session) {
-        return NextResponse.json({
-          success: true,
-          user: {
-            id: signInData.user.id,
-            email: signInData.user.email,
-          },
-          session: {
-            access_token: signInData.session.access_token,
-            expires_at: signInData.session.expires_at,
-          },
-        });
-      }
-
+    if (error) {
       return NextResponse.json(
-        { error: "User already exists. Please sign in." },
+        { error: error.message },
         { status: 400 }
       );
     }
 
-    // Other errors
-    return NextResponse.json(
-      { error: error.message },
-      { status: 400 }
-    );
+    if (data.user && !data.session) {
+      return NextResponse.json({
+        success: true,
+        requireConfirmation: true,
+        message: "请检查您的邮箱以确认注册",
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: data.user?.id,
+        email: data.user?.email,
+        name: data.user?.user_metadata?.name,
+      },
+      session: data.session ? {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at,
+      } : null,
+    });
   } catch (error) {
     console.error("Signup error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "注册失败，请稍后重试" },
       { status: 500 }
     );
   }
