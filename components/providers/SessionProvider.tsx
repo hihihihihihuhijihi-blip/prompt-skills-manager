@@ -26,19 +26,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   // Fetch session on mount
   useEffect(() => {
+    setMounted(true);
     loadSession();
   }, []);
 
   async function loadSession() {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const session = JSON.parse(stored);
-        setUser(session.user);
-        setAccessToken(session.access_token);
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const session = JSON.parse(stored);
+          setUser(session.user);
+          setAccessToken(session.access_token);
+        }
       }
     } catch (error) {
       console.error("Failed to load session:", error);
@@ -63,12 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       // Store session in localStorage
-      const sessionData = {
-        user: data.user,
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
+      if (typeof window !== "undefined") {
+        const sessionData = {
+          user: data.user,
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
+      }
 
       setUser(data.user);
       setAccessToken(data.session.access_token);
@@ -99,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Store session if available
-      if (data.session) {
+      if (data.session && typeof window !== "undefined") {
         const sessionData = {
           user: data.user,
           access_token: data.session.access_token,
@@ -131,7 +137,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Sign out error:", error);
     } finally {
-      localStorage.removeItem(STORAGE_KEY);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(STORAGE_KEY);
+      }
       setUser(null);
       setAccessToken(null);
     }
@@ -139,6 +147,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function refreshSession() {
     await loadSession();
+  }
+
+  // Don't render children until mounted on client
+  if (!mounted) {
+    return null;
   }
 
   return (
