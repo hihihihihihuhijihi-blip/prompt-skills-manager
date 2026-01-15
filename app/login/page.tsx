@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,6 @@ import { useAuth } from "@/components/providers/SessionProvider";
 
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { signIn, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,10 +20,9 @@ function LoginForm() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      const redirect = searchParams.get("redirect") || "/dashboard";
-      router.push(redirect);
+      router.push("/dashboard");
     }
-  }, [user, router, searchParams]);
+  }, [user, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,8 +32,7 @@ function LoginForm() {
     try {
       const result = await signIn(email, password);
       if (result.success) {
-        const redirect = searchParams.get("redirect") || "/dashboard";
-        router.push(redirect);
+        router.push("/dashboard");
         router.refresh();
       } else {
         setError(result.error || "Login failed");
