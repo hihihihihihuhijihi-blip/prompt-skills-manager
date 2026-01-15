@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/skills/[id] - Get a single skill
@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: "Invalid skill ID format" }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from("skills")
@@ -44,7 +44,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     const body = await request.json();
     const { title, description, content, category_id, tags, parameters, examples, is_favorite, is_public } = body;
@@ -87,7 +87,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     const { error } = await supabase
       .from("skills")

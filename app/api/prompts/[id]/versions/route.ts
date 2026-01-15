@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/prompts/[id]/versions - Get prompt version history
@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from("prompt_versions")

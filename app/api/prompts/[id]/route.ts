@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/prompts/[id] - Get a single prompt
@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: "Invalid prompt ID format" }, { status: 400 });
     }
 
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from("prompts")
@@ -45,7 +45,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     const body = await request.json();
     const { title, content, description, category_id, tags, is_favorite, is_public } = body;
@@ -86,7 +86,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     const { error } = await supabase
       .from("prompts")

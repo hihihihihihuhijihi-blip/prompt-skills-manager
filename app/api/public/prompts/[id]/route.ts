@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/public/prompts/[id] - Get a public prompt without authentication
@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     // Fetch the prompt with is_public check
     const { data: prompt, error } = await supabase

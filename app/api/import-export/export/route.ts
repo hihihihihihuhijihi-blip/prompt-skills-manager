@@ -1,15 +1,11 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/import-export/export - Export user data
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const supabase = createAdminClient();
+    const GUEST_USER_ID = "00000000-0000-0000-0000-000000000000";
 
     const body = await request.json();
     const { format = "json", type = "all" } = body;
@@ -17,20 +13,20 @@ export async function POST(request: NextRequest) {
     // Fetch user's data
     const [promptsResult, skillsResult, categoriesResult] = await Promise.all([
       type === "all" || type === "prompts"
-        ? supabase.from("prompts").select("*").eq("user_id", user.id)
+        ? supabase.from("prompts").select("*").eq("user_id", GUEST_USER_ID)
         : { data: [] },
       type === "all" || type === "skills"
-        ? supabase.from("skills").select("*").eq("user_id", user.id)
+        ? supabase.from("skills").select("*").eq("user_id", GUEST_USER_ID)
         : { data: [] },
       type === "all"
-        ? supabase.from("categories").select("*").or(`user_id.eq.${user.id},is_system.eq.true`)
+        ? supabase.from("categories").select("*").or(`user_id.eq.${GUEST_USER_ID},is_system.eq.true`)
         : { data: [] },
     ]);
 
     const exportData = {
       version: "1.0",
       exported_at: new Date().toISOString(),
-      user_id: user.id,
+      user_id: GUEST_USER_ID,
       prompts: promptsResult.data || [],
       skills: skillsResult.data || [],
       categories: categoriesResult.data || [],

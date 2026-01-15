@@ -1,10 +1,10 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/tags - List all tags
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
     const { searchParams } = new URL(request.url);
 
     const type = searchParams.get("type") as "prompt" | "skill" | null;
@@ -67,12 +67,8 @@ export async function GET(request: NextRequest) {
 // POST /api/tags - Create a new tag
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const supabase = createAdminClient();
+    const GUEST_USER_ID = "00000000-0000-0000-0000-000000000000";
 
     const body = await request.json();
     const { name } = body;
@@ -99,7 +95,7 @@ export async function POST(request: NextRequest) {
       .from("tags")
       .insert({
         name: tagName,
-        user_id: user.id,
+        user_id: GUEST_USER_ID,
         is_system: false,
       })
       .select()

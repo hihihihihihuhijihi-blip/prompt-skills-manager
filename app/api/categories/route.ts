@@ -1,10 +1,10 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/categories - List categories
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
     const { searchParams } = new URL(request.url);
 
     const type = searchParams.get("type") as "prompt" | "skill" | null;
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 // POST /api/categories - Create category
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
     const body = await request.json();
 
     // Guest mode - use a fixed guest user ID

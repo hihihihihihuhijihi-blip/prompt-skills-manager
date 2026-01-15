@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // PATCH /api/categories/[id] - Update category
@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     const body = await request.json();
     const { name, color, description, icon } = body;
@@ -63,7 +63,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = createAdminClient();
 
     // Check if category exists
     const { data: category } = await supabase

@@ -1,15 +1,11 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/import-export/import - Import user data
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const supabase = createAdminClient();
+    const GUEST_USER_ID = "00000000-0000-0000-0000-000000000000";
 
     const body = await request.json();
     const { data, format = "json" } = body;
@@ -24,7 +20,7 @@ export async function POST(request: NextRequest) {
       // Import categories (if user-defined)
       if (importData.categories) {
         for (const cat of importData.categories) {
-          if (!cat.is_system && cat.user_id !== user.id) {
+          if (!cat.is_system) {
             // Create new category for this user
             try {
               await supabase.from("categories").insert({
@@ -33,7 +29,7 @@ export async function POST(request: NextRequest) {
                 color: cat.color,
                 icon: cat.icon,
                 description: cat.description,
-                user_id: user.id,
+                user_id: GUEST_USER_ID,
                 is_system: false,
               });
             } catch (e) {
@@ -51,7 +47,7 @@ export async function POST(request: NextRequest) {
             const { data: existing } = await supabase
               .from("prompts")
               .select("id")
-              .eq("user_id", user.id)
+              .eq("user_id", GUEST_USER_ID)
               .eq("title", prompt.title)
               .single();
 
@@ -67,7 +63,7 @@ export async function POST(request: NextRequest) {
               tags: prompt.tags || [],
               variables: prompt.variables || {},
               category_id: prompt.category_id,
-              user_id: user.id,
+              user_id: GUEST_USER_ID,
               is_public: false,
               is_favorite: prompt.is_favorite || false,
             });
@@ -86,7 +82,7 @@ export async function POST(request: NextRequest) {
             const { data: existing } = await supabase
               .from("skills")
               .select("id")
-              .eq("user_id", user.id)
+              .eq("user_id", GUEST_USER_ID)
               .eq("title", skill.title)
               .single();
 
@@ -102,7 +98,7 @@ export async function POST(request: NextRequest) {
               parameters: skill.parameters || {},
               examples: skill.examples || [],
               category_id: skill.category_id,
-              user_id: user.id,
+              user_id: GUEST_USER_ID,
               is_public: false,
               is_favorite: skill.is_favorite || false,
             });

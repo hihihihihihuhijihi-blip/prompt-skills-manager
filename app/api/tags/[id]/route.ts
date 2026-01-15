@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/auth/supabase";
+import { createAdminClient } from "@/lib/auth/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
 // DELETE /api/tags/[id] - Delete a tag
@@ -8,12 +8,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const supabase = createAdminClient();
 
     // The id here is actually the tag name (from the client URL encoding)
     const tagName = decodeURIComponent(id);
@@ -32,11 +27,6 @@ export async function DELETE(
     // System tags cannot be deleted
     if (tag.is_system) {
       return NextResponse.json({ error: "系统标签不能删除" }, { status: 403 });
-    }
-
-    // User tags can only be deleted by their owner
-    if (tag.user_id !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Delete the tag

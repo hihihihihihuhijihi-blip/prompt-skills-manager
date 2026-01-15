@@ -18,11 +18,9 @@ if (!supabaseAnonKey) {
 // ============================================================================
 
 export async function createServerClient() {
-  // Use service role key for guest mode (bypasses RLS)
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey;
   const cookieStore = await cookies();
 
-  return createSSRServerClient(supabaseUrl, serviceRoleKey, {
+  return createSSRServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value;
@@ -32,7 +30,7 @@ export async function createServerClient() {
           cookieStore.set({ name, value, ...options });
         } catch {
           // The `set` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing user sessions.
+          // This can be ignored if we have middleware refreshing user sessions.
         }
       },
       remove(name: string, options: any) {
@@ -40,7 +38,7 @@ export async function createServerClient() {
           cookieStore.set({ name, value: '', ...options });
         } catch {
           // The `delete` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing user sessions.
+          // This can be ignored if we have middleware refreshing user sessions.
         }
       },
     },
@@ -88,6 +86,26 @@ export function createServiceClient() {
     throw new Error('Missing env.SUPABASE_SERVICE_ROLE_KEY');
   }
 
+  return createBrowserClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
+// ============================================================================
+// Admin Client (for API routes in guest mode - bypasses RLS, no cookies)
+// ============================================================================
+
+export function createAdminClient() {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!serviceRoleKey) {
+    throw new Error('Missing env.SUPABASE_SERVICE_ROLE_KEY');
+  }
+
+  // Use regular client without cookies for API routes
   return createBrowserClient(supabaseUrl, serviceRoleKey, {
     auth: {
       persistSession: false,
