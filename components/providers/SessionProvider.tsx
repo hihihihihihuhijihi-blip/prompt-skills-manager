@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 const STORAGE_KEY = "prompt-skills-manager-session";
 
@@ -25,11 +25,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
-
-  // Set loading to false after mount
-  useEffect(() => {
-    setLoading(false);
-  }, []);
 
   async function signIn(email: string, password: string) {
     try {
@@ -114,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function refreshSession() {
-    setLoading(false);
+    // No-op
   }
 
   return (
