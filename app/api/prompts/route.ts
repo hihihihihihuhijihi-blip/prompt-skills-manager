@@ -69,12 +69,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createServerClient();
     const body = await request.json();
 
-    // Get user from session (simplified - you should validate session)
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Guest mode - use a fixed guest user ID
+    const GUEST_USER_ID = "00000000-0000-0000-0000-000000000000";
 
     const { title, content, description, category_id, tags, variables, is_public } = body;
 
@@ -95,7 +91,7 @@ export async function POST(request: NextRequest) {
         tags: tags || [],
         variables: variables || {},
         is_public: is_public || false,
-        user_id: user.id,
+        user_id: GUEST_USER_ID,
       })
       .select()
       .single();

@@ -16,11 +16,6 @@ export async function GET(
     }
 
     const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     const { data, error } = await supabase
       .from("skills")
@@ -30,11 +25,6 @@ export async function GET(
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-
-    // Check if user owns this skill or it's public
-    if (data.user_id !== user.id && !data.is_public) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     return NextResponse.json({ skill: data });
@@ -55,22 +45,6 @@ export async function PATCH(
   try {
     const { id } = await params;
     const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check ownership first
-    const { data: existing } = await supabase
-      .from("skills")
-      .select("user_id")
-      .eq("id", id)
-      .single();
-
-    if (!existing || existing.user_id !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
 
     const body = await request.json();
     const { title, description, content, category_id, tags, parameters, examples, is_favorite, is_public } = body;
@@ -114,22 +88,6 @@ export async function DELETE(
   try {
     const { id } = await params;
     const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check ownership first
-    const { data: existing } = await supabase
-      .from("skills")
-      .select("user_id")
-      .eq("id", id)
-      .single();
-
-    if (!existing || existing.user_id !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
 
     const { error } = await supabase
       .from("skills")

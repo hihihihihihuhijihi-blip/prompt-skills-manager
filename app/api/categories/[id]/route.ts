@@ -9,16 +9,11 @@ export async function PATCH(
   try {
     const { id } = await params;
     const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     const body = await request.json();
     const { name, color, description, icon } = body;
 
-    // Check if category exists and user has permission
+    // Check if category exists
     const { data: category } = await supabase
       .from("categories")
       .select("*")
@@ -29,12 +24,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
     }
 
-    // System categories can be edited by name/color only, not deleted
-    // User categories can only be edited by their owner
-    if (category.user_id !== user.id && category.is_system) {
-      // Allow editing system categories
-    } else if (category.user_id !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // System categories cannot be modified
+    if (category.is_system) {
+      return NextResponse.json({ error: "System categories cannot be modified" }, { status: 403 });
     }
 
     const updates: any = {};
@@ -72,13 +64,8 @@ export async function DELETE(
   try {
     const { id } = await params;
     const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check if category exists and user has permission
+    // Check if category exists
     const { data: category } = await supabase
       .from("categories")
       .select("*")
@@ -92,11 +79,6 @@ export async function DELETE(
     // System categories cannot be deleted
     if (category.is_system) {
       return NextResponse.json({ error: "System categories cannot be deleted" }, { status: 403 });
-    }
-
-    // User categories can only be deleted by their owner
-    if (category.user_id !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { error } = await supabase

@@ -41,11 +41,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createServerClient();
     const body = await request.json();
 
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Guest mode - use a fixed guest user ID
+    const GUEST_USER_ID = "00000000-0000-0000-0000-000000000000";
 
     const { name, type, color, icon, description } = body;
 
@@ -64,7 +61,7 @@ export async function POST(request: NextRequest) {
         color: color || "#3B82F6",
         icon,
         description,
-        user_id: user.id,
+        user_id: GUEST_USER_ID,
         is_system: false,
       })
       .select()
