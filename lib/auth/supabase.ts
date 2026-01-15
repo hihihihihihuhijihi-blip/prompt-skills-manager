@@ -18,9 +18,11 @@ if (!supabaseAnonKey) {
 // ============================================================================
 
 export async function createServerClient() {
+  // Use service role key for guest mode (bypasses RLS)
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey;
   const cookieStore = await cookies();
 
-  return createSSRServerClient(supabaseUrl, supabaseAnonKey, {
+  return createSSRServerClient(supabaseUrl, serviceRoleKey, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value;
