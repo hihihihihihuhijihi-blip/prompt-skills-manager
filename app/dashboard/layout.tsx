@@ -1,17 +1,9 @@
-"use client";
-
-import { ReactNode } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { AuthProvider } from "@/components/providers/SessionProvider";
 
 export default function Layout({
   children,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
 }) {
-  return (
-    <AuthProvider>
-      <DashboardLayout>{children}</DashboardLayout>
-    </AuthProvider>
-  );
+  return <DashboardLayout>{children}</DashboardLayout>;
 }
