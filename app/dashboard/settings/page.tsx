@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { User, Bell, Palette, Shield, Loader2, ChevronRight, ChevronDown, AlertTriangle } from "lucide-react";
-import { useAuth } from "@/components/providers/SessionProvider";
+import { User, Bell, Palette, Shield, ChevronRight, ChevronDown, AlertTriangle } from "lucide-react";
 import { useTheme } from "@/lib/hooks/use-theme";
 
 type SettingsTab = "profile" | "notifications" | "appearance" | "privacy";
@@ -21,13 +19,8 @@ const TABS = [
 ];
 
 export default function SettingsPage() {
-  const { user, refreshSession } = useAuth();
-  const { theme, setTheme, accentColor, setAccentColor, mounted: themeMounted } = useTheme();
+  const { theme, setTheme, accentColor, setAccentColor } = useTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
 
   // Notification settings
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -35,52 +28,6 @@ export default function SettingsPage() {
 
   // Danger zone collapse state
   const [dangerZoneExpanded, setDangerZoneExpanded] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setName(user.name || "");
-      setEmail(user.email || "");
-    }
-  }, [user]);
-
-  async function handleSaveProfile() {
-    setSaving(true);
-    setMessage("");
-
-    try {
-      const response = await fetch("/api/user/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-
-      if (response.ok) {
-        setMessage("个人资料已更新");
-        await refreshSession();
-      } else {
-        const data = await response.json();
-        setMessage(data.error || "更新失败");
-      }
-    } catch (error) {
-      setMessage("网络错误，请稍后重试");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function getUserInitial() {
-    if (user?.name) return user.name.charAt(0).toUpperCase();
-    if (user?.email) return user.email.charAt(0).toUpperCase();
-    return "U";
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 text-violet-600 animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -90,7 +37,7 @@ export default function SettingsPage() {
           设置
         </h1>
         <p className="font-body text-slate-600 mt-1">
-          管理你的账户和应用设置
+          管理应用设置
         </p>
       </div>
 
@@ -124,112 +71,32 @@ export default function SettingsPage() {
         <div className="lg:col-span-3 space-y-6">
           {/* Profile Tab */}
           {activeTab === "profile" && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>个人资料</CardTitle>
-                  <CardDescription>更新你的个人信息</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Avatar */}
-                  <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-lg">
-                      <span className="text-white font-bold text-xl">{getUserInitial()}</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">{user.name || "未设置姓名"}</p>
-                      <p className="text-sm text-slate-500">{user.email}</p>
-                    </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>访客模式</CardTitle>
+                <CardDescription>当前为访客模式，登录后可管理个人资料</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Avatar */}
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-xl">U</span>
                   </div>
-
-                  <Separator />
-
-                  {/* Form */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">姓名</Label>
-                      <Input
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="你的姓名"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">邮箱</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        disabled
-                        className="bg-slate-50"
-                      />
-                      <p className="text-xs text-slate-500">邮箱地址无法修改</p>
-                    </div>
-
-                    {message && (
-                      <p className={`text-sm ${message.includes("失败") ? "text-red-600" : "text-green-600"}`}>
-                        {message}
-                      </p>
-                    )}
-
-                    <Button onClick={handleSaveProfile} disabled={saving}>
-                      {saving ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          保存中...
-                        </>
-                      ) : (
-                        "保存更改"
-                      )}
-                    </Button>
+                  <div>
+                    <p className="font-medium text-slate-900">访客用户</p>
+                    <p className="text-sm text-slate-500">访客模式</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Danger Zone */}
-              <Card className="border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                <button
-                  onClick={() => setDangerZoneExpanded(!dangerZoneExpanded)}
-                  className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors rounded-t-xl"
-                >
-                  <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-5 w-5 text-slate-400 dark:text-slate-600" />
-                    <div>
-                      <CardTitle className="text-slate-600 dark:text-slate-500 text-base">危险区域</CardTitle>
-                      <CardDescription className="text-slate-400 dark:text-slate-600">不可逆操作</CardDescription>
-                    </div>
-                  </div>
-                  <ChevronDown className={`h-5 w-5 text-slate-400 dark:text-slate-600 transition-transform ${
-                    dangerZoneExpanded ? "rotate-180" : ""
-                  }`} />
-                </button>
-                {dangerZoneExpanded && (
-                  <CardContent className="px-6 pb-6 pt-2 space-y-4">
-                    <Separator className="bg-slate-200 dark:bg-slate-800" />
-                    <div className="flex items-center justify-between py-2">
-                      <div>
-                        <p className="font-medium text-slate-700 dark:text-slate-300">删除所有数据</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-500">永久删除你的所有Prompt和 Skills</p>
-                      </div>
-                      <Button variant="outline" size="sm" className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-300 dark:hover:border-red-800">
-                        删除所有数据
-                      </Button>
-                    </div>
-                    <Separator className="bg-slate-200 dark:bg-slate-800" />
-                    <div className="flex items-center justify-between py-2">
-                      <div>
-                        <p className="font-medium text-slate-700 dark:text-slate-300">删除账户</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-500">永久删除你的账户和所有数据</p>
-                      </div>
-                      <Button variant="outline" size="sm" className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-300 dark:hover:border-red-800">
-                        删除账户
-                      </Button>
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
-            </>
+                <Separator />
+
+                <div className="rounded-lg bg-slate-50 p-4">
+                  <p className="text-sm text-slate-600">
+                    👤 登录功能即将回归，敬请期待。
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Notifications Tab */}

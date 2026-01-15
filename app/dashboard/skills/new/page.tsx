@@ -9,13 +9,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Zap, Save, Loader2, Plus, X, Trash2 } from "lucide-react";
 import { createSkill, fetchCategories, type Category, type SkillParameter, type SkillExample } from "@/lib/api/client";
-import { useAuth } from "@/components/providers/SessionProvider";
 
 const PARAMETER_TYPES = ['string', 'number', 'boolean', 'object', 'array'] as const;
 
 export default function NewSkillPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -32,13 +30,8 @@ export default function NewSkillPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (authLoading) return; // Wait for auth to load
-    if (!user) {
-      router.push("/login");
-      return;
-    }
     loadCategories();
-  }, [user, router, authLoading]);
+  }, []);
 
   async function loadCategories() {
     setCategoriesLoading(true);

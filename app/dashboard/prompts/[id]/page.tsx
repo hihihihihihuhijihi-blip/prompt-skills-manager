@@ -33,7 +33,6 @@ import {
   type Prompt,
   type Category,
 } from "@/lib/api/client";
-import { useAuth } from "@/components/providers/SessionProvider";
 
 interface PromptVersion {
   id: string;
@@ -46,7 +45,6 @@ interface PromptVersion {
 export default function PromptDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { user, loading: authLoading } = useAuth();
   const promptId = params.id as string;
 
   const [prompt, setPrompt] = useState<Prompt | null>(null);
@@ -72,12 +70,6 @@ export default function PromptDetailPage() {
   const [isPublic, setIsPublic] = useState(false);
 
   useEffect(() => {
-    if (authLoading) return; // Wait for auth to load
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
     // Validate UUID format before making API call
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!promptId || !uuidRegex.test(promptId)) {
@@ -92,7 +84,7 @@ export default function PromptDetailPage() {
     }
 
     loadData();
-  }, [user, promptId, router, authLoading]);
+  }, [promptId, router]);
 
   async function loadData() {
     setLoading(true);

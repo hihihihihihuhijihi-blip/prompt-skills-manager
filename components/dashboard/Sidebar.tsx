@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FileText, Zap, Folder, Tag, Import, Settings, Home, Sparkles } from "lucide-react";
-import { useAuth } from "@/components/providers/SessionProvider";
 
 interface SidebarProps {
   className?: string;
@@ -54,22 +53,6 @@ const navItems = [
 ];
 
 export function Sidebar({ className }: SidebarProps) {
-  const { user } = useAuth();
-
-  function getUserInitial() {
-    if (user?.name) return user.name.charAt(0).toUpperCase();
-    if (user?.email) return user.email.charAt(0).toUpperCase();
-    return "U";
-  }
-
-  function getDisplayName() {
-    return user?.name || "用户";
-  }
-
-  function getUserEmail() {
-    return user?.email || "未登录";
-  }
-
   return (
     <aside
       className={`flex h-screen w-72 flex-col bg-white/80 backdrop-blur-xl border-r border-slate-200/50 ${className || ""}`}
@@ -107,11 +90,11 @@ export function Sidebar({ className }: SidebarProps) {
           className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-100/50 hover:shadow-md transition-all duration-200 group"
         >
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-lg">
-            <span className="text-white font-semibold">{getUserInitial()}</span>
+            <span className="text-white font-semibold">U</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-900 truncate">{getDisplayName()}</p>
-            <p className="text-xs text-slate-500 truncate">{getUserEmail()}</p>
+            <p className="text-sm font-semibold text-slate-900 truncate">用户</p>
+            <p className="text-xs text-slate-500 truncate">访客模式</p>
           </div>
           <Settings className="h-4 w-4 text-slate-400 group-hover:text-violet-500 transition-colors" />
         </Link>

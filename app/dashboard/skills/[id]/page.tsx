@@ -32,14 +32,12 @@ import {
   type SkillParameter,
   type SkillExample,
 } from "@/lib/api/client";
-import { useAuth } from "@/components/providers/SessionProvider";
 
 const PARAMETER_TYPES = ['string', 'number', 'boolean', 'object', 'array'] as const;
 
 export default function SkillDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { user, loading: authLoading } = useAuth();
   const skillId = params.id as string;
 
   const [skill, setSkill] = useState<Skill | null>(null);
@@ -64,12 +62,6 @@ export default function SkillDetailPage() {
   const [isPublic, setIsPublic] = useState(false);
 
   useEffect(() => {
-    if (authLoading) return; // Wait for auth to load
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
     // Validate UUID format before making API call
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!skillId || !uuidRegex.test(skillId)) {
@@ -80,7 +72,7 @@ export default function SkillDetailPage() {
     }
 
     loadData();
-  }, [user, skillId, router, authLoading]);
+  }, [skillId, router]);
 
   async function loadData() {
     setLoading(true);

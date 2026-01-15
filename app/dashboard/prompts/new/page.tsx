@@ -9,11 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Sparkles, Save, Loader2, Plus, X } from "lucide-react";
 import { createPrompt, fetchCategories, type Category } from "@/lib/api/client";
-import { useAuth } from "@/components/providers/SessionProvider";
 
 export default function NewPromptPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -28,13 +26,8 @@ export default function NewPromptPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (authLoading) return; // Wait for auth to load
-    if (!user) {
-      router.push("/login");
-      return;
-    }
     loadCategories();
-  }, [user, router, authLoading]);
+  }, []);
 
   async function loadCategories() {
     setCategoriesLoading(true);

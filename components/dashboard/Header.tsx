@@ -1,29 +1,12 @@
 "use client";
 
-import { Bell, Search, LogOut, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/components/providers/SessionProvider";
-import { useRouter } from "next/navigation";
+import { Bell, Search } from "lucide-react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
-  const { user, signOut, loading } = useAuth();
-  const router = useRouter();
-
-  async function handleSignOut() {
-    await signOut();
-    router.push("/");
-  }
-
-  function getUserInitial() {
-    if (user?.name) return user.name.charAt(0).toUpperCase();
-    if (user?.email) return user.email.charAt(0).toUpperCase();
-    return "U";
-  }
-
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-6">
       {/* Left side - Logo & Mobile menu button */}
@@ -52,54 +35,19 @@ export function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
 
-        {user ? (
-          <>
-            <button className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-slate-100 transition-colors relative">
-              <Bell className="h-5 w-5 text-slate-600" />
-              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500" />
-            </button>
+        {/* Notification */}
+        <button className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-slate-100 transition-colors relative">
+          <Bell className="h-5 w-5 text-slate-600" />
+          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500" />
+        </button>
 
-            {/* User Avatar */}
-            <div
-              className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-200"
-              title={user.email}
-            >
-              <span className="text-white font-semibold text-sm">
-                {getUserInitial()}
-              </span>
-            </div>
-
-            {/* Logout Button */}
-            <button
-              onClick={handleSignOut}
-              disabled={loading}
-              className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-slate-100 transition-colors text-slate-600 hover:text-red-600"
-              title="退出登录"
-            >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <LogOut className="h-5 w-5" />
-              )}
-            </button>
-          </>
-        ) : (
-          <>
-            <Button
-              variant="ghost"
-              className="h-10 px-4 rounded-xl font-medium text-sm"
-              onClick={() => router.push("/login")}
-            >
-              登录
-            </Button>
-            <Button
-              className="btn-primary h-10 px-4 rounded-xl font-medium text-sm"
-              onClick={() => router.push("/signup")}
-            >
-              注册
-            </Button>
-          </>
-        )}
+        {/* User Avatar - Guest Mode */}
+        <div
+          className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shadow-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-200"
+          title="访客模式"
+        >
+          <span className="text-white font-semibold text-sm">U</span>
+        </div>
       </div>
     </header>
   );
