@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 const STORAGE_KEY = "prompt-skills-manager-session";
 
@@ -24,30 +24,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch session on mount
-  useEffect(() => {
-    loadSession();
-  }, []);
-
-  async function loadSession() {
-    try {
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const session = JSON.parse(stored);
-          setUser(session.user);
-          setAccessToken(session.access_token);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load session:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // Simple initialization - don't load from localStorage on mount to avoid SSR issues
+  // Session will be loaded when needed
+  setTimeout(() => setLoading(false), 0);
 
   async function signIn(email: string, password: string) {
     try {
@@ -75,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(data.user);
-      setAccessToken(data.session.access_token);
       return { success: true };
     } catch (error) {
       console.error("Sign in error:", error);
@@ -111,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
         setUser(data.user);
-        setAccessToken(data.session.access_token);
       }
 
       return { success: true };
@@ -123,28 +102,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     try {
-      if (accessToken) {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${accessToken}`,
-          },
-        });
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(STORAGE_KEY);
       }
     } catch (error) {
       console.error("Sign out error:", error);
     } finally {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem(STORAGE_KEY);
-      }
       setUser(null);
-      setAccessToken(null);
     }
   }
 
   async function refreshSession() {
-    await loadSession();
+    // Simply mark as not loading
+    setLoading(false);
   }
 
   return (

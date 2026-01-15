@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeScript } from "@/components/providers/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Prompt Skills Manager",
@@ -13,9 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang="zh-CN">
       <body className="antialiased">
-        <ThemeScript />
         {children}
       </body>
     </html>
