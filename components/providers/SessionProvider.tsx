@@ -26,11 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
 
   // Fetch session on mount
   useEffect(() => {
-    setMounted(true);
     loadSession();
   }, []);
 
@@ -147,11 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function refreshSession() {
     await loadSession();
-  }
-
-  // Don't render children until mounted on client
-  if (!mounted) {
-    return null;
   }
 
   return (
